@@ -9,10 +9,9 @@ User=openclaw
 WorkingDirectory=/home/openclaw/.openclaw/workspace/mission-control/backend
 Environment=MC_HOST=127.0.0.1
 Environment=MC_PORT=8787
-# Set these to your Spark host endpoints.
 Environment=SPARK_OLLAMA=http://127.0.0.1:11434
 Environment=SPARK_METRICS_URL=http://127.0.0.1:8766/metrics
-ExecStart=/usr/bin/env python3 /home/openclaw/.openclaw/workspace/mission-control/backend/app.py
+ExecStart=/home/openclaw/.openclaw/workspace/mission-control/.venv/bin/python /home/openclaw/.openclaw/workspace/mission-control/backend/app.py
 Restart=on-failure
 RestartSec=3
 
