@@ -1,0 +1,30 @@
+body { font-family: Inter, system-ui, sans-serif; margin: 0; background: #0b1020; color: #e5e7eb; }
+header { display:flex; justify-content:space-between; align-items:center; padding:16px 20px; border-bottom:1px solid #24304f; position:sticky; top:0; background:#0b1020; }
+main { display:grid; grid-template-columns: repeat(auto-fit,minmax(420px,1fr)); gap:12px; padding:12px; }
+section { background:#111a33; border:1px solid #24304f; border-radius:10px; padding:12px; }
+h2{margin:0 0 8px; font-size:16px}
+h3{margin:12px 0 6px; font-size:14px; color:#cbd5e1}
+button{background:#2563eb;color:#fff;border:0;border-radius:8px;padding:8px 12px;cursor:pointer}
+.top-actions{display:flex;gap:10px;align-items:center}
+.muted{color:#9ca3af;font-size:13px}
+.kv div{margin:4px 0}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px;margin-top:8px}
+.card{background:#0a1228;border:1px solid #24304f;border-radius:8px;padding:8px}
+.badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:12px}
+.ok{background:#14532d;color:#bbf7d0}.warn{background:#78350f;color:#fde68a}.err{background:#7f1d1d;color:#fecaca}
+table{width:100%;border-collapse:collapse;font-size:12px} th,td{border-bottom:1px solid #24304f;padding:6px;text-align:left}
+.dot{display:inline-block;width:9px;height:9px;border-radius:999px;margin-right:6px;vertical-align:middle}
+.green{background:#22c55e}.red{background:#ef4444}
+.agent-status{margin-top:4px}
+.bar{height:8px;background:#1f2937;border-radius:999px;overflow:hidden;margin:4px 0 8px}
+.bar>span{display:block;height:100%;background:#22c55e}
+.runtime-row{display:flex;justify-content:space-between;gap:8px;font-size:12px}
+.runtime-list{display:grid;gap:6px}
+.badge.state{font-size:11px}
+.badge.warm{background:#14532d;color:#bbf7d0}
+.badge.cold{background:#1e3a8a;color:#bfdbfe}
+.badge.offline{background:#7f1d1d;color:#fecaca}
+.badge.online{background:#065f46;color:#99f6e4}
+.dashline{display:flex;align-items:center;gap:6px}
+.dashline .dot{margin-right:0}
+small.dim{color:#94a3b8}
