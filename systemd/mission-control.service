@@ -9,6 +9,8 @@ User=openclaw
 WorkingDirectory=/home/openclaw/.openclaw/workspace/mission-control/backend
 Environment=MC_HOST=127.0.0.1
 Environment=MC_PORT=8787
+Environment=OPENCLAW_BIN=/home/<user>/.npm-global/bin/openclaw
+Environment=PATH=/home/<user>/.npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 Environment=SPARK_OLLAMA=http://127.0.0.1:11434
 Environment=SPARK_METRICS_URL=http://127.0.0.1:8766/metrics
 ExecStart=/home/openclaw/.openclaw/workspace/mission-control/.venv/bin/python /home/openclaw/.openclaw/workspace/mission-control/backend/app.py
