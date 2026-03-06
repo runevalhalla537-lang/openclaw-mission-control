@@ -252,6 +252,26 @@ def _build_runtime() -> Any:
     }
 
 
+@app.get("/api/fast")
+def api_fast() -> Any:
+    return {
+        "health": api_health(),
+        "runtime": api_runtime(),
+    }
+
+
+@app.get("/api/slow")
+def api_slow() -> Any:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=4) as ex:
+        fut = {
+            "agents": ex.submit(api_agents),
+            "sessions": ex.submit(api_sessions),
+            "subagents": ex.submit(api_subagents),
+            "cron": ex.submit(api_cron),
+        }
+        return {k: v.result() for k, v in fut.items()}
+
+
 @app.get("/api/dashboard")
 def api_dashboard() -> Any:
     with concurrent.futures.ThreadPoolExecutor(max_workers=6) as ex:
