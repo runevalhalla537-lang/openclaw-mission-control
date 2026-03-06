@@ -10,6 +10,20 @@
     <header>
       <h1>Mission Control</h1>
       <div class="top-actions">
+        <label class="muted">Mode
+          <select id="modeSelect">
+            <option value="eco" selected>Eco</option>
+            <option value="live">Live</option>
+          </select>
+        </label>
+        <label class="muted">Agents
+          <select id="agentsInterval">
+            <option value="15">15s</option>
+            <option value="30" selected>30s</option>
+            <option value="60">60s</option>
+            <option value="0">Manual</option>
+          </select>
+        </label>
         <span id="last">--</span>
         <button id="refresh">Refresh</button>
       </div>
