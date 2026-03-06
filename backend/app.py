@@ -51,6 +51,8 @@ app.add_middleware(
 
 def run_json(cmd: list[str], timeout: int = 20) -> Any:
     try:
+        if cmd and cmd[0] == "openclaw":
+            cmd = [os.getenv("OPENCLAW_BIN", "/home/<user>/.npm-global/bin/openclaw")] + cmd[1:]
         out = subprocess.check_output(cmd, stderr=subprocess.STDOUT, text=True, timeout=timeout)
         out = out.strip()
         if not out:
@@ -174,8 +176,8 @@ def api_runtime() -> Any:
 
 
 def _build_runtime() -> Any:
-    spark_host = os.getenv("SPARK_OLLAMA", "http://127.0.0.1:11434")
-    spark_metrics_url = os.getenv("SPARK_METRICS_URL", "http://127.0.0.1:8766/metrics")
+    spark_host = os.getenv("SPARK_OLLAMA", "http://192.168.1.41:11434")
+    spark_metrics_url = os.getenv("SPARK_METRICS_URL", "http://192.168.1.41:8766/metrics")
 
     agents = api_agents()
     agent_rows = agents if isinstance(agents, list) else agents.get("agents", []) if isinstance(agents, dict) else []
