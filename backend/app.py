@@ -22,6 +22,24 @@ FRONTEND_DIR = ROOT / "frontend"
 
 app = FastAPI(title="OpenClaw Mission Control", version="0.1.0")
 
+CACHE: dict[str, dict[str, Any]] = {}
+
+
+def cached_value(key: str, ttl_s: int, producer):
+    now = time.time()
+    hit = CACHE.get(key)
+    if hit and hit.get("expires", 0) > now:
+        return hit["value"]
+    value = producer()
+    CACHE[key] = {"value": value, "expires": now + ttl_s}
+    return value
+
+
+def cache_invalidate(prefix: str) -> None:
+    for k in list(CACHE.keys()):
+        if k.startswith(prefix):
+            CACHE.pop(k, None)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -113,22 +131,30 @@ def jetson_metrics() -> dict[str, Any]:
 
 @app.get("/api/health")
 def api_health() -> dict[str, Any]:
-    return {
-        "service": "mission-control",
-        "gateway": run_json(["openclaw", "gateway", "status", "--json"]),
-        "status": run_json(["openclaw", "status", "--json"]),
-    }
+    return cached_value(
+        "health",
+        20,
+        lambda: {
+            "service": "mission-control",
+            "gateway": run_json(["openclaw", "gateway", "status", "--json"]),
+            "status": run_json(["openclaw", "status", "--json"]),
+        },
+    )
 
 
 @app.get("/api/agents")
 def api_agents() -> Any:
-    return run_json(["openclaw", "agents", "list", "--json"])
+    return cached_value("agents", 60, lambda: run_json(["openclaw", "agents", "list", "--json"]))
 
 
 @app.get("/api/sessions")
 def api_sessions() -> Any:
     # CLI supports top-level sessions listing flags, not subcommands.
-    return run_json(["openclaw", "sessions", "--all-agents", "--active", "240", "--json"])
+    return cached_value(
+        "sessions",
+        20,
+        lambda: run_json(["openclaw", "sessions", "--all-agents", "--active", "240", "--json"]),
+    )
 
 
 @app.get("/api/subagents")
@@ -139,15 +165,19 @@ def api_subagents() -> Any:
 
 @app.get("/api/cron")
 def api_cron() -> Any:
-    return run_json(["openclaw", "cron", "list", "--all", "--json"])
+    return cached_value("cron", 30, lambda: run_json(["openclaw", "cron", "list", "--all", "--json"]))
 
 
 @app.get("/api/runtime")
 def api_runtime() -> Any:
+    return cached_value("runtime", 20, _build_runtime)
+
+
+def _build_runtime() -> Any:
     spark_host = os.getenv("SPARK_OLLAMA", "http://127.0.0.1:11434")
     spark_metrics_url = os.getenv("SPARK_METRICS_URL", "http://127.0.0.1:8766/metrics")
 
-    agents = run_json(["openclaw", "agents", "list", "--json"])
+    agents = api_agents()
     agent_rows = agents if isinstance(agents, list) else agents.get("agents", []) if isinstance(agents, dict) else []
 
     spark_online = True
@@ -220,6 +250,18 @@ def api_runtime() -> Any:
     }
 
 
+@app.get("/api/dashboard")
+def api_dashboard() -> Any:
+    return {
+        "health": api_health(),
+        "agents": api_agents(),
+        "sessions": api_sessions(),
+        "subagents": api_subagents(),
+        "cron": api_cron(),
+        "runtime": api_runtime(),
+    }
+
+
 class CronSwitchAgentBody(BaseModel):
     id: str
     agent: str
@@ -227,7 +269,11 @@ class CronSwitchAgentBody(BaseModel):
 
 @app.post("/api/cron/switch-agent")
 def api_cron_switch_agent(body: CronSwitchAgentBody) -> Any:
-    return run_json(["openclaw", "cron", "edit", "--id", body.id, "--agent", body.agent, "--json"])
+    out = run_json(["openclaw", "cron", "edit", "--id", body.id, "--agent", body.agent, "--json"])
+    cache_invalidate("cron")
+    cache_invalidate("runtime")
+    cache_invalidate("sessions")
+    return out
 
 
 class CronToggleBody(BaseModel):
@@ -238,7 +284,9 @@ class CronToggleBody(BaseModel):
 @app.post("/api/cron/toggle")
 def api_cron_toggle(body: CronToggleBody) -> Any:
     cmd = ["openclaw", "cron", "enable" if body.enabled else "disable", "--id", body.id, "--json"]
-    return run_json(cmd)
+    out = run_json(cmd)
+    cache_invalidate("cron")
+    return out
 
 
 @app.get("/")
