@@ -1,0 +1,15 @@
+[Unit]
+Description=Spark Metrics Exporter
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=openclaw
+WorkingDirectory=/opt/spark-metrics
+ExecStart=/usr/bin/env python3 /opt/spark-metrics/spark_metrics_exporter.py
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target
