@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import concurrent.futures
 import json
 import os
 import re
@@ -135,11 +136,10 @@ def jetson_metrics() -> dict[str, Any]:
 def api_health() -> dict[str, Any]:
     return cached_value(
         "health",
-        20,
+        60,
         lambda: {
             "service": "mission-control",
-            "gateway": run_json(["openclaw", "gateway", "status", "--json"]),
-            "status": run_json(["openclaw", "status", "--json"]),
+            "health": run_json(["openclaw", "health", "--json"]),
         },
     )
 
@@ -254,14 +254,16 @@ def _build_runtime() -> Any:
 
 @app.get("/api/dashboard")
 def api_dashboard() -> Any:
-    return {
-        "health": api_health(),
-        "agents": api_agents(),
-        "sessions": api_sessions(),
-        "subagents": api_subagents(),
-        "cron": api_cron(),
-        "runtime": api_runtime(),
-    }
+    with concurrent.futures.ThreadPoolExecutor(max_workers=6) as ex:
+        fut = {
+            "health": ex.submit(api_health),
+            "agents": ex.submit(api_agents),
+            "sessions": ex.submit(api_sessions),
+            "subagents": ex.submit(api_subagents),
+            "cron": ex.submit(api_cron),
+            "runtime": ex.submit(api_runtime),
+        }
+        return {k: v.result() for k, v in fut.items()}
 
 
 class CronSwitchAgentBody(BaseModel):
