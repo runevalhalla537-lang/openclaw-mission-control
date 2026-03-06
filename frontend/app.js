@@ -21,9 +21,8 @@ function healthBadge(ok){ return `<span class="badge ${ok?'ok':'err'}">${ok?'OK'
 function esc(s){ return String(s ?? '').replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[m])); }
 
 function renderHealth(h){
-  const gwOk = !h?.gateway?.error;
-  const stOk = !h?.status?.error;
-  byId('healthSummary').innerHTML = `<div>Gateway: ${healthBadge(gwOk)}</div><div>Status API: ${healthBadge(stOk)}</div>`;
+  const ok = !h?.health?.error;
+  byId('healthSummary').innerHTML = `<div>OpenClaw Health: ${healthBadge(ok)}</div>`;
 }
 
 function stateBadge(state){
