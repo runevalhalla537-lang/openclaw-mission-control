@@ -105,7 +105,13 @@ function renderAgents(a){
   agentsCache = arr.map(x => x.id || x.agentId).filter(Boolean);
   const activity = buildActivityByAgent();
   byId('agentsCount').textContent = `${arr.length} agents detected`;
-  byId('agentsCards').innerHTML = arr.map(x=>{
+  const ordered = [...arr].sort((a,b)=>{
+    const ia = (a.id || a.agentId || '') === 'main' ? 0 : 1;
+    const ib = (b.id || b.agentId || '') === 'main' ? 0 : 1;
+    return ia - ib;
+  });
+
+  byId('agentsCards').innerHTML = ordered.map(x=>{
     const id = x.id || x.agentId || 'unknown';
     const meta = AGENT_META[id] || {};
     const name = meta.display || x.identity?.name || id;
@@ -116,7 +122,8 @@ function renderAgents(a){
     const statusLine = working
       ? `<div class="agent-status"><span class="dot green"></span><span class="muted">Working: ${esc(ainfo.task)}</span></div>`
       : `<div class="agent-status"><span class="dot red"></span><span class="muted">Idle</span></div>`;
-    return `<div class="card"><div><strong>${esc(name)}</strong></div><div class="muted">${esc(id)}</div><div class="muted">${esc(role)}</div>${statusLine}<div class="muted">${esc(model)}</div></div>`;
+    const cardClass = id === 'main' ? 'card main-card' : 'card';
+    return `<div class="${cardClass}"><div><strong>${esc(name)}</strong></div><div class="muted">${esc(id)}</div><div class="muted">${esc(role)}</div>${statusLine}<div class="muted">${esc(model)}</div></div>`;
   }).join('') || '<div class="muted">No agents returned.</div>';
 }
 
