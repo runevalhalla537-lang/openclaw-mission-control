@@ -43,7 +43,9 @@ bash setup.sh
 
 ```bash
 source .venv/bin/activate
-MC_HOST=0.0.0.0 MC_PORT=8787 \
+MC_HOST=0.0.0.0 \
+MC_PORT=8787 \
+OPENCLAW_BIN=/home/<user>/.npm-global/bin/openclaw \
 SPARK_OLLAMA=http://<spark-host>:11434 \
 SPARK_METRICS_URL=http://<spark-host>:8766/metrics \
 python backend/app.py
@@ -52,6 +54,36 @@ python backend/app.py
 Open:
 - `http://127.0.0.1:8787` (local)
 - `http://<tailnet-hostname>:8787` (Tailscale)
+
+## Public demo config (copy/paste)
+
+### Mission Control host env
+
+```bash
+MC_HOST=0.0.0.0
+MC_PORT=8787
+OPENCLAW_BIN=/home/<user>/.npm-global/bin/openclaw
+SPARK_OLLAMA=http://<spark-host>:11434
+SPARK_METRICS_URL=http://<spark-host>:8766/metrics
+```
+
+### systemd env block
+
+```ini
+Environment=MC_HOST=0.0.0.0
+Environment=MC_PORT=8787
+Environment=OPENCLAW_BIN=/home/<user>/.npm-global/bin/openclaw
+Environment=SPARK_OLLAMA=http://<spark-host>:11434
+Environment=SPARK_METRICS_URL=http://<spark-host>:8766/metrics
+Environment=PATH=/home/<user>/.npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+```
+
+### Spark exporter quick run
+
+```bash
+python3 spark_metrics_exporter.py
+# serves http://0.0.0.0:8766/metrics
+```
 
 ## systemd auto-start
 
@@ -79,9 +111,3 @@ After installing on Spark, `/api/runtime` will display Spark utilization bars.
 - Keep this dashboard private (Tailscale/private network).
 - If exposed beyond private network, add auth at reverse proxy or app layer.
 - This public repo uses placeholders and does not include private IPs, secrets, or personal tokens.
-
-## Requirements
-
-- Python 3.10+
-- OpenClaw CLI available on Mission Control host
-- Access to your OpenClaw gateway/runtime
