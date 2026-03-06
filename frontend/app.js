@@ -199,22 +199,50 @@ async function handleCronAction(e){
 }
 
 let inFlight = false;
+let lastSlowAt = 0;
+let timers = [];
 
-async function refresh(){
+function clearTimers(){ timers.forEach(clearInterval); timers=[]; }
+
+async function refreshFast(){
+  const d = await getJSON('/api/fast');
+  renderHealth(d.health); renderRuntime(d.runtime);
+}
+
+async function refreshSlow(){
+  const d = await getJSON('/api/slow');
+  renderSessions(d.sessions); renderAgents(d.agents); renderCron(d.cron); renderSubagents(d.subagents);
+  lastSlowAt = Date.now();
+}
+
+async function refresh(forceSlow=false){
   if(inFlight) return;
   inFlight = true;
   byId('last').textContent = 'Loading…';
   try{
-    const d = await getJSON('/api/dashboard');
-    renderHealth(d.health); renderRuntime(d.runtime); renderSessions(d.sessions); renderAgents(d.agents); renderCron(d.cron); renderSubagents(d.subagents);
+    await refreshFast();
+    const sec = Number(byId('agentsInterval').value || '30');
+    const due = sec > 0 ? (Date.now() - lastSlowAt) >= sec*1000 : forceSlow;
+    if (due || forceSlow) await refreshSlow();
     byId('last').textContent = `Updated ${nowStr()}`;
   }catch(e){
     byId('last').textContent = `Error: ${e}`;
-  } finally {
-    inFlight = false;
+  } finally { inFlight = false; }
+}
+
+function applyMode(){
+  clearTimers();
+  const mode = byId('modeSelect').value;
+  if(mode === 'live'){
+    timers.push(setInterval(()=>refresh(false), 5000));
+  } else {
+    timers.push(setInterval(()=>refresh(false), 15000));
   }
 }
 
-byId('refresh').addEventListener('click', refresh);
+byId('refresh').addEventListener('click', ()=>refresh(true));
 byId('cronTable').addEventListener('click', handleCronAction);
-refresh(); setInterval(refresh,30000);
+byId('modeSelect').addEventListener('change', applyMode);
+byId('agentsInterval').addEventListener('change', ()=>refresh(true));
+applyMode();
+refresh(true);
