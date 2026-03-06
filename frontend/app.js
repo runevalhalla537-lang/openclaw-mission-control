@@ -199,19 +199,23 @@ async function handleCronAction(e){
   }
 }
 
+let inFlight = false;
+
 async function refresh(){
+  if(inFlight) return;
+  inFlight = true;
   byId('last').textContent = 'Loading…';
   try{
-    const [health,agents,sessions,subagents,cron,runtime] = await Promise.all([
-      getJSON('/api/health'), getJSON('/api/agents'), getJSON('/api/sessions'), getJSON('/api/subagents'), getJSON('/api/cron'), getJSON('/api/runtime')
-    ]);
-    renderHealth(health); renderRuntime(runtime); renderSessions(sessions); renderAgents(agents); renderCron(cron); renderSubagents(subagents);
+    const d = await getJSON('/api/dashboard');
+    renderHealth(d.health); renderRuntime(d.runtime); renderSessions(d.sessions); renderAgents(d.agents); renderCron(d.cron); renderSubagents(d.subagents);
     byId('last').textContent = `Updated ${nowStr()}`;
   }catch(e){
     byId('last').textContent = `Error: ${e}`;
+  } finally {
+    inFlight = false;
   }
 }
 
 byId('refresh').addEventListener('click', refresh);
 byId('cronTable').addEventListener('click', handleCronAction);
-refresh(); setInterval(refresh,10000);
+refresh(); setInterval(refresh,30000);
